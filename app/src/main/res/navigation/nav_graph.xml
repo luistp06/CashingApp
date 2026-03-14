@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/homeFragment">
+
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.example.cashingapp.screens.HomeFragment"
+        android:label="Inicio"
+        tools:layout="@layout/fragment_home" />
+    <fragment
+        android:id="@+id/addTransactionFragment"
+        android:name="com.example.cashingapp.screens.AddTransactionFragment"
+        android:label="Añadir movimiento"
+        tools:layout="@layout/fragment_add_transaction" />
+    <fragment
+        android:id="@+id/summaryFragment"
+        android:name="com.example.cashingapp.screens.SummaryFragment"
+        android:label="Resumen"
+        tools:layout="@layout/fragment_summary" />
+    <fragment
+        android:id="@+id/statsFragment"
+        android:name="com.example.cashingapp.screens.StatsFragment"
+        android:label="Gráficos"
+        tools:layout="@layout/fragment_stats" />
+    <fragment
+        android:id="@+id/categoriesFragment"
+        android:name="com.example.cashingapp.screens.CategoriesFragment"
+        android:label="Categorias"
+        tools:layout="@layout/fragment_categories" />
+</navigation>
