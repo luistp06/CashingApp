@@ -1,60 +1,114 @@
 package com.example.cashingapp.screens
 
+import android.app.DatePickerDialog
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
+import android.widget.RadioGroup
+import android.widget.Toast
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import com.example.cashingapp.R
-
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
-
-/**
- * A simple [Fragment] subclass.
- * Use the [AddTransactionFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
+import com.example.cashingapp.model.Transaction
+import com.example.cashingapp.viewmodel.TransactionViewModel
+import com.google.android.material.textfield.TextInputEditText
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 class AddTransactionFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
-    }
+    private lateinit var viewModel: TransactionViewModel
+    private var fechaSeleccionada: String = ""
+
+
+    // onCreateView
+    // - Infla el layout fragment_add_transaction.xml
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_add_transaction, container, false)
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment AddTransactionFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            AddTransactionFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
+
+    // onViewCreated
+    // - Conectamos todos los elementos del formulario con su lógica
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        // Inicializar ViewModel
+        viewModel = ViewModelProvider(this)[TransactionViewModel::class.java]
+
+        // Referencias a los elementos del formulario
+        val etImporte = view.findViewById<TextInputEditText>(R.id.et_importe)
+        val rgTipo = view.findViewById<RadioGroup>(R.id.rg_tipo)
+        val btnFecha = view.findViewById<Button>(R.id.btn_fecha)
+        val etNota = view.findViewById<TextInputEditText>(R.id.et_nota)
+        val btnGuardar = view.findViewById<Button>(R.id.btn_guardar)
+
+        // Fecha por defecto: hoy
+        fechaSeleccionada = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        btnFecha.text = fechaSeleccionada
+
+
+        // SELECTOR DE FECHA
+
+        // - Guarda la fecha seleccionada en formato "yyyy-MM-dd"
+
+        btnFecha.setOnClickListener {
+            val calendario = Calendar.getInstance()
+            DatePickerDialog(
+                requireContext(),
+                { _, anio, mes, dia ->
+                    fechaSeleccionada = String.format("%04d-%02d-%02d", anio, mes + 1, dia)
+                    btnFecha.text = fechaSeleccionada
+                },
+                calendario.get(Calendar.YEAR),
+                calendario.get(Calendar.MONTH),
+                calendario.get(Calendar.DAY_OF_MONTH)
+            ).show()
+        }
+
+
+        // BOTÓN GUARDAR
+        // - Valida que el importe no esté vacío
+        // - Crea un objeto Transaction con los datos del formulario
+        // - Lo guarda en la base de datos a través del ViewModel
+        // - Vuelve a la pantalla anterior
+
+        btnGuardar.setOnClickListener {
+
+            val importeTexto = etImporte.text.toString()
+
+
+            if (importeTexto.isEmpty()) {
+                Toast.makeText(requireContext(), "Introduce un importe", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
             }
+
+            // Determinar el tipo según el RadioButton seleccionado
+            val tipo = if (rgTipo.checkedRadioButtonId == R.id.rb_ingreso) "INGRESO" else "GASTO"
+
+            // Crear el objeto Transaction
+            val transaction = Transaction(
+                importe = importeTexto.toDouble(),
+                tipo = tipo,
+                categoriaId = 1, // TODO: usar categoría seleccionada por el usuario
+                fecha = fechaSeleccionada,
+                nota = etNota.text.toString().ifEmpty { null }
+            )
+
+            // Guardar en la base de datos
+            viewModel.insertar(transaction)
+
+            // Volver a la pantalla anterior
+            findNavController().popBackStack()
+        }
     }
 }
