@@ -8,6 +8,9 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.example.cashingapp.R
+import com.example.cashingapp.model.Category
+import com.example.cashingapp.model.Transaction
+import com.example.cashingapp.viewmodel.CategoryViewModel
 import com.example.cashingapp.viewmodel.TransactionViewModel
 import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.charts.PieChart
@@ -19,14 +22,13 @@ import java.util.Locale
 
 class StatsFragment : Fragment() {
 
-
-    private lateinit var viewModel: TransactionViewModel
+    private lateinit var transactionViewModel: TransactionViewModel
+    private lateinit var categoryViewModel: CategoryViewModel
     private lateinit var pieChart: PieChart
     private lateinit var barChart: BarChart
 
-
-    // onCreateView
-    // - Infla el layout fragment_stats.xml
+    private var listaCategorias: List<Category> = emptyList()
+    private var movimientosMes: List<Transaction> = emptyList()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -35,16 +37,13 @@ class StatsFragment : Fragment() {
         return inflater.inflate(R.layout.fragment_stats, container, false)
     }
 
-
-    // onViewCreated
-    // - Inicializa los gráficos y los conecta con los datos del ViewModel
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         val mesActual = SimpleDateFormat("yyyy-MM", Locale.getDefault()).format(Date())
 
-        viewModel = ViewModelProvider(this)[TransactionViewModel::class.java]
+        transactionViewModel = ViewModelProvider(this)[TransactionViewModel::class.java]
+        categoryViewModel = ViewModelProvider(this)[CategoryViewModel::class.java]
 
         pieChart = view.findViewById(R.id.pie_chart)
         barChart = view.findViewById(R.id.bar_chart)
@@ -52,55 +51,76 @@ class StatsFragment : Fragment() {
         configurarPieChart()
         configurarBarChart()
 
+        // -----------------------------------------------------------------------
+        // OBSERVAR CATEGORÍAS
+        // - Cuando llegan guardamos la lista y redibujamos los gráficos
+        // -----------------------------------------------------------------------
+        categoryViewModel.categorias.observe(viewLifecycleOwner) { categorias ->
+            listaCategorias = categorias
+            actualizarGraficos()
+        }
 
+        // -----------------------------------------------------------------------
         // OBSERVAR MOVIMIENTOS DEL MES
-        // - Cuando cambian los movimientos actualizamos ambos gráficos
-
-        viewModel.obtenerPorMes(mesActual).observe(viewLifecycleOwner) { lista ->
-
-            // GRÁFICO CIRCULAR - gastos agrupados por categoriaId
-            val gastos = lista.filter { it.tipo == "GASTO" }
-            val agrupados = gastos.groupBy { it.categoriaId }
-
-            val entriesPie = agrupados.map { (categoriaId, movimientos) ->
-                PieEntry(movimientos.sumOf { it.importe }.toFloat(), "Cat $categoriaId")
-            }
-
-            if (entriesPie.isNotEmpty()) {
-                val dataSetPie = PieDataSet(entriesPie, "")
-                dataSetPie.colors = ColorTemplate.MATERIAL_COLORS.toList()
-                dataSetPie.valueTextColor = Color.WHITE
-                dataSetPie.valueTextSize = 12f
-                pieChart.data = PieData(dataSetPie)
-                pieChart.invalidate()
-            }
-
-            // GRÁFICO DE BARRAS - ingresos vs gastos del mes
-            val totalIngresos = lista.filter { it.tipo == "INGRESO" }.sumOf { it.importe }.toFloat()
-            val totalGastos = lista.filter { it.tipo == "GASTO" }.sumOf { it.importe }.toFloat()
-
-            val entriesBar = listOf(
-                BarEntry(0f, totalIngresos),
-                BarEntry(1f, totalGastos)
-            )
-
-            val dataSetBar = BarDataSet(entriesBar, "")
-            dataSetBar.colors = listOf(
-                resources.getColor(R.color.ingreso, null),
-                resources.getColor(R.color.gasto, null)
-            )
-            dataSetBar.valueTextColor = Color.WHITE
-            dataSetBar.valueTextSize = 12f
-
-            barChart.data = BarData(dataSetBar)
-            barChart.invalidate()
+        // - Cuando llegan guardamos la lista y redibujamos los gráficos
+        // -----------------------------------------------------------------------
+        transactionViewModel.obtenerPorMes(mesActual).observe(viewLifecycleOwner) { lista ->
+            movimientosMes = lista
+            actualizarGraficos()
         }
     }
 
     // -----------------------------------------------------------------------
-    // configurarPieChart
-    // - Configuración visual del gráfico circular
+    // actualizarGraficos
+    // - Solo dibuja cuando ya tenemos tanto categorías como movimientos
     // -----------------------------------------------------------------------
+    private fun actualizarGraficos() {
+        if (listaCategorias.isEmpty()) return
+
+        // GRÁFICO CIRCULAR - gastos por categoría
+        val gastos = movimientosMes.filter { it.tipo == "GASTO" }
+        val agrupados = gastos.groupBy { it.categoriaId }
+
+        val entriesPie = agrupados.map { (categoriaId, movimientos) ->
+            val nombreCategoria = listaCategorias
+                .find { it.id == categoriaId }?.nombre ?: "Sin categoría"
+            PieEntry(movimientos.sumOf { it.importe }.toFloat(), nombreCategoria)
+        }
+
+        if (entriesPie.isNotEmpty()) {
+            val dataSetPie = PieDataSet(entriesPie, "")
+            val pieColors = agrupados.keys.map { categoriaId ->
+                val colorHex = listaCategorias.find { it.id == categoriaId }?.color ?: "#7C3AED"
+                Color.parseColor(colorHex)
+            }
+            dataSetPie.colors = pieColors
+            dataSetPie.valueTextColor = Color.WHITE
+            dataSetPie.valueTextSize = 12f
+            pieChart.data = PieData(dataSetPie)
+            pieChart.invalidate()
+        }
+
+        // GRÁFICO DE BARRAS - ingresos vs gastos del mes
+        val totalIngresos = movimientosMes.filter { it.tipo == "INGRESO" }.sumOf { it.importe }.toFloat()
+        val totalGastos = movimientosMes.filter { it.tipo == "GASTO" }.sumOf { it.importe }.toFloat()
+
+        val entriesBar = listOf(
+            BarEntry(0f, totalIngresos),
+            BarEntry(1f, totalGastos)
+        )
+
+        val dataSetBar = BarDataSet(entriesBar, "")
+        dataSetBar.colors = listOf(
+            resources.getColor(R.color.ingreso, null),
+            resources.getColor(R.color.gasto, null)
+        )
+        dataSetBar.valueTextColor = Color.WHITE
+        dataSetBar.valueTextSize = 12f
+
+        barChart.data = BarData(dataSetBar)
+        barChart.invalidate()
+    }
+
     private fun configurarPieChart() {
         pieChart.setUsePercentValues(true)
         pieChart.description.isEnabled = false
@@ -111,17 +131,24 @@ class StatsFragment : Fragment() {
         pieChart.setEntryLabelColor(Color.WHITE)
     }
 
-    // -----------------------------------------------------------------------
-    // configurarBarChart
-    // - Configuración visual del gráfico de barras
-    // -----------------------------------------------------------------------
     private fun configurarBarChart() {
         barChart.description.isEnabled = false
         barChart.legend.isEnabled = false
-        barChart.xAxis.setDrawGridLines(false)
         barChart.axisLeft.textColor = Color.WHITE
         barChart.axisRight.isEnabled = false
-        barChart.xAxis.textColor = Color.WHITE
+        barChart.axisLeft.axisMinimum = 0f
         barChart.setFitBars(true)
+
+        // Etiquetas del eje X: "Ingresos" y "Gastos"
+        val etiquetas = listOf("Ingresos", "Gastos")
+        barChart.xAxis.textColor = Color.WHITE
+        barChart.xAxis.setDrawGridLines(false)
+        barChart.xAxis.position = com.github.mikephil.charting.components.XAxis.XAxisPosition.BOTTOM
+        barChart.xAxis.granularity = 1f
+        barChart.xAxis.valueFormatter = object : com.github.mikephil.charting.formatter.ValueFormatter() {
+            override fun getFormattedValue(value: Float): String {
+                return etiquetas.getOrElse(value.toInt()) { "" }
+            }
+        }
     }
 }

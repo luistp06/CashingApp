@@ -81,6 +81,23 @@
                 android:textColor="@color/texto_principal"/>
 
         </RadioGroup>
+        <!-- CATEGORÍA -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Categoría"
+            android:textColor="@color/texto_secundario"
+            android:textSize="13sp"
+            android:layout_marginBottom="6dp"/>
+
+        <Spinner
+            android:id="@+id/spinner_categoria"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:background="@color/superficie_variante"
+            android:padding="12dp"
+            android:textColor="@color/texto_principal"/>
 
         <!-- FECHA -->
         <TextView

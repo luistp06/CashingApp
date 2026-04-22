@@ -1,11 +1,14 @@
 package com.example.cashingapp.screens
 
 import android.app.AlertDialog
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
+import android.widget.LinearLayout
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -20,10 +23,6 @@ class CategoriesFragment : Fragment() {
     private lateinit var viewModel: CategoryViewModel
     private lateinit var adapter: CategoryAdapter
 
-
-    // onCreateView
-    // - Infla el layout fragment_categories.xml
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -31,70 +30,83 @@ class CategoriesFragment : Fragment() {
         return inflater.inflate(R.layout.fragment_categories, container, false)
     }
 
-
-    // onViewCreated
-    // - Conectamos el ViewModel, RecyclerView y el FAB
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Inicializar ViewModel
         viewModel = ViewModelProvider(this)[CategoryViewModel::class.java]
 
-        // Inicializar Adapter
         adapter = CategoryAdapter(
-            onEditar = { category ->
-                mostrarDialogoEditar(category)
-            },
-            onEliminar = { category ->
-                viewModel.eliminar(category)
-            }
+            onEditar = { category -> showEditDialog(category) },
+            onEliminar = { category -> viewModel.eliminar(category) }
         )
 
-        // Configurar RecyclerView
         val recyclerView = view.findViewById<RecyclerView>(R.id.rv_categorias)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
         recyclerView.adapter = adapter
 
-        // Observar categorías y actualizar la lista cuando cambien
-        viewModel.categorias.observe(viewLifecycleOwner) { lista ->
-            adapter.actualizarLista(lista)
+        viewModel.categorias.observe(viewLifecycleOwner) { list ->
+            adapter.actualizarLista(list)
         }
 
-        // FAB → mostrar diálogo para añadir categoría
         view.findViewById<FloatingActionButton>(R.id.fab_añadir_categoria).setOnClickListener {
-            mostrarDialogoAnadir()
+            showAddDialog()
         }
     }
 
+    private fun showAddDialog() {
+        val colors = listOf(
+            "#7C3AED", "#E53E3E", "#38A169", "#3182CE",
+            "#DD6B20", "#D69E2E", "#00B5D8", "#ED64A6"
+        )
+        var selectedColor = colors[0]
 
-    // mostrarDialogoAnadir
-    // - Muestra un AlertDialog con un campo de texto para el nombre
-    // - Al confirmar crea una nueva categoría y la guarda en la BD
+        val dialogView = LayoutInflater.from(requireContext())
+            .inflate(R.layout.dialog_nueva_categoria, null)
 
-    private fun mostrarDialogoAnadir() {
-        val input = EditText(requireContext())
-        input.hint = "Nombre de la categoría"
+        val etName = dialogView.findViewById<EditText>(R.id.et_nombre_categoria)
+        val etIcon = dialogView.findViewById<EditText>(R.id.et_icono_categoria)
+        val colorContainer = dialogView.findViewById<LinearLayout>(R.id.contenedor_colores)
+
+        // Create a circle for each color
+        colors.forEach { color ->
+            val circle = View(requireContext())
+            val size = 80
+            val params = LinearLayout.LayoutParams(size, size)
+            params.setMargins(8, 0, 8, 0)
+            circle.layoutParams = params
+
+            val drawable = GradientDrawable()
+            drawable.shape = GradientDrawable.OVAL
+            drawable.setColor(Color.parseColor(color))
+            circle.background = drawable
+
+            circle.setOnClickListener {
+                selectedColor = color
+                // Highlight selected color with white border
+                for (i in 0 until colorContainer.childCount) {
+                    val v = colorContainer.getChildAt(i)
+                    val d = v.background as GradientDrawable
+                    d.setStroke(if (colors[i] == selectedColor) 6 else 0, Color.WHITE)
+                }
+            }
+            colorContainer.addView(circle)
+        }
 
         AlertDialog.Builder(requireContext())
             .setTitle("Nueva categoría")
-            .setView(input)
+            .setView(dialogView)
             .setPositiveButton("Guardar") { _, _ ->
-                val nombre = input.text.toString()
-                if (nombre.isNotEmpty()) {
-                    viewModel.insertar(Category(nombre = nombre, icono = "📁", color = "#7C3AED"))
+                val name = etName.text.toString()
+                val icon = etIcon.text.toString().ifEmpty { "📁" }
+                if (name.isNotEmpty()) {
+                    viewModel.insertar(Category(nombre = name, icono = icon, color = selectedColor))
                 }
             }
             .setNegativeButton("Cancelar", null)
             .show()
     }
 
-
-    // mostrarDialogoEditar
-    // - Muestra un AlertDialog con el nombre actual para editarlo
-    // - Al confirmar actualiza la categoría en la BD
-
-    private fun mostrarDialogoEditar(category: Category) {
+    private fun showEditDialog(category: Category) {
         val input = EditText(requireContext())
         input.setText(category.nombre)
 
@@ -102,9 +114,9 @@ class CategoriesFragment : Fragment() {
             .setTitle("Editar categoría")
             .setView(input)
             .setPositiveButton("Guardar") { _, _ ->
-                val nombre = input.text.toString()
-                if (nombre.isNotEmpty()) {
-                    viewModel.actualizar(category.copy(nombre = nombre))
+                val name = input.text.toString()
+                if (name.isNotEmpty()) {
+                    viewModel.actualizar(category.copy(nombre = name))
                 }
             }
             .setNegativeButton("Cancelar", null)
