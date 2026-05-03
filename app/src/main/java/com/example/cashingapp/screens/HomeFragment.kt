@@ -41,7 +41,9 @@ class HomeFragment : Fragment() {
 
         adapter = TransactionAdapter(
             onEditar = { transaction ->
-                // TODO: navigate to edit form
+                val bundle = Bundle()
+                bundle.putInt("transactionId", transaction.id)
+                findNavController().navigate(R.id.addTransactionFragment, bundle)
             },
             onEliminar = { transaction ->
                 transactionViewModel.eliminar(transaction)
@@ -61,14 +63,19 @@ class HomeFragment : Fragment() {
         transactionViewModel.obtenerPorMes(currentMonth).observe(viewLifecycleOwner) { list ->
             adapter.actualizarLista(list)
         }
+// Observe balance
+        var totalIngresos = 0.0
+        var totalGastos = 0.0
 
-        // Observe totals
         transactionViewModel.totalIngresosMes(currentMonth).observe(viewLifecycleOwner) { total ->
-            view.findViewById<TextView>(R.id.tv_ingresos).text = "${total ?: 0.0} €"
+            totalIngresos = total ?: 0.0
+            view.findViewById<TextView>(R.id.tv_ingresos).text = String.format("%.2f €", totalIngresos).replace(".", ",")
+            view.findViewById<TextView>(R.id.tv_balance).text = String.format("%.2f €", totalIngresos - totalGastos).replace(".", ",")
         }
-
         transactionViewModel.totalGastosMes(currentMonth).observe(viewLifecycleOwner) { total ->
-            view.findViewById<TextView>(R.id.tv_gastos).text = "${total ?: 0.0} €"
+            totalGastos = total ?: 0.0
+            view.findViewById<TextView>(R.id.tv_gastos).text = String.format("%.2f €", totalGastos).replace(".", ",")
+            view.findViewById<TextView>(R.id.tv_balance).text = String.format("%.2f €", totalIngresos - totalGastos).replace(".", ",")
         }
 
         view.findViewById<FloatingActionButton>(R.id.fab_añadir).setOnClickListener {

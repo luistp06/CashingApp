@@ -26,7 +26,8 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
     fun totalGastosMes(mes: String): LiveData<Double?> {
         return dao.totalGastosMes(mes)
     }
-
+    fun totalIngresos() = dao.totalIngresos()
+    fun totalGastos() = dao.totalGastos()
     fun insertar(transaction: Transaction) {
         CoroutineScope(Dispatchers.IO).launch {
             dao.insertar(transaction)

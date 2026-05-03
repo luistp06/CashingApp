@@ -9,5 +9,17 @@
         <item name="android:statusBarColor">@color/fondo</item>
         <item name="android:navigationBarColor">@color/superficie</item>
         <item name="colorSurface">@color/superficie</item>
+        <item name="colorOnSurface">@color/texto_principal</item>
+        <item name="bottomNavigationStyle">@style/BottomNav</item>
+    </style>
+
+    <style name="BottomNav" parent="Widget.MaterialComponents.BottomNavigationView">
+        <item name="itemIconTint">@color/bottom_nav_colors</item>
+        <item name="itemTextColor">@color/bottom_nav_colors</item>
+    </style>
+
+    <style name="ShapeAppearance.App.FAB" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">16dp</item>
     </style>
 </resources>

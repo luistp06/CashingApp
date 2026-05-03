@@ -14,7 +14,12 @@
         android:id="@+id/addTransactionFragment"
         android:name="com.example.cashingapp.screens.AddTransactionFragment"
         android:label="Añadir movimiento"
-        tools:layout="@layout/fragment_add_transaction" />
+        tools:layout="@layout/fragment_add_transaction">
+        <argument
+            android:name="transactionId"
+            app:argType="integer"
+            android:defaultValue="-1"/>
+    </fragment>
     <fragment
         android:id="@+id/summaryFragment"
         android:name="com.example.cashingapp.screens.SummaryFragment"

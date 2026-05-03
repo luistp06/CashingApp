@@ -35,7 +35,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            android:layout_marginBottom="16dp">
+            android:layout_marginBottom="16dp"
+            app:boxStrokeColor="@color/texto_secundario"
+            app:boxBackgroundColor="@color/superficie_variante"
+            app:hintTextColor="@color/texto_secundario">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/et_importe"
@@ -43,7 +46,11 @@
                 android:layout_height="wrap_content"
                 android:inputType="numberDecimal"
                 android:textColor="@color/texto_principal"
-                android:hint="0.00"/>
+                android:hint="0.00"
+                android:textColorHint="@color/texto_secundario"
+                app:boxStrokeColor="@color/texto_secundario"
+                app:boxBackgroundColor="@color/superficie_variante"
+                app:hintTextColor="@color/texto_secundario"/>
 
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -70,7 +77,9 @@
                 android:layout_weight="1"
                 android:text="Gasto"
                 android:textColor="@color/texto_principal"
-                android:checked="true"/>
+                android:checked="true"
+
+                />
 
             <RadioButton
                 android:id="@+id/rb_ingreso"
@@ -130,14 +139,18 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            android:layout_marginBottom="24dp">
+            android:layout_marginBottom="24dp"
+            app:boxStrokeColor="@color/texto_secundario"
+            app:boxBackgroundColor="@color/superficie_variante"
+            app:hintTextColor="@color/texto_secundario">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/et_nota"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textColor="@color/texto_principal"
-                android:hint="Añade una nota..."/>
+                android:hint="Añade una nota..."
+                android:textColorHint="@color/texto_secundario"/>
 
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -148,6 +161,15 @@
             android:layout_height="wrap_content"
             android:text="Guardar"
             app:backgroundTint="@color/morado_principal"
+            android:textColor="@color/blanco"/>
+        <!-- BOTÓN ELIMINAR -->
+        <Button
+            android:id="@+id/btn_eliminar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Eliminar"
+            android:visibility="gone"
+            app:backgroundTint="#E53E3E"
             android:textColor="@color/blanco"/>
 
     </LinearLayout>

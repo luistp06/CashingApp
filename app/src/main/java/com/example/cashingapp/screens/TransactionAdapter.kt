@@ -1,5 +1,7 @@
 package com.example.cashingapp.screens
 
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.cashingapp.R
 import com.example.cashingapp.model.Category
 import com.example.cashingapp.model.Transaction
+
 
 class TransactionAdapter(
     private val lista: MutableList<Transaction> = mutableListOf(),
@@ -35,6 +38,15 @@ class TransactionAdapter(
 
         // Buscar la categoría del movimiento para mostrar su icono y nombre
         val categoria = listaCategorias.find { it.id == item.categoriaId }
+        val colorHex = categoria?.color ?: "#7C3AED"
+        val color = Color.parseColor(colorHex)
+// Aplicar color con transparencia (40 de 255 = ~15% opacidad)
+        val colorTransparente = Color.argb(40, Color.red(color), Color.green(color), Color.blue(color))
+        val drawable = GradientDrawable()
+        drawable.shape = GradientDrawable.RECTANGLE
+        drawable.cornerRadius = 48f
+        drawable.setColor(colorTransparente)
+        holder.itemView.background = drawable
 
         holder.tvIcono.text = categoria?.icono ?: "📁"
         holder.tvNombre.text = categoria?.nombre ?: "Sin categoría"

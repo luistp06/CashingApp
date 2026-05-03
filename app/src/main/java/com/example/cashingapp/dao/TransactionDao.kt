@@ -27,4 +27,10 @@ interface TransactionDao {
 
     @Query("SELECT SUM(importe) FROM movimientos WHERE tipo = 'GASTO' AND fecha LIKE :mes || '%'")
     fun totalGastosMes(mes: String): LiveData<Double?>
+
+    @Query("SELECT SUM(importe) FROM `movimientos` WHERE tipo = 'INGRESO'")
+    fun totalIngresos(): LiveData<Double?>
+
+    @Query("SELECT SUM(importe) FROM `movimientos` WHERE tipo = 'GASTO'")
+    fun totalGastos(): LiveData<Double?>
 }

@@ -15,20 +15,12 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Resumen mensual"
+            android:text="Balance general"
             android:textColor="@color/texto_principal"
             android:textSize="24sp"
             android:textStyle="bold"
-            android:layout_marginBottom="4dp"/>
+            android:layout_marginBottom="16dp"/>
 
-        <TextView
-            android:id="@+id/tv_mes_resumen"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Marzo 2026"
-            android:textColor="@color/texto_secundario"
-            android:textSize="13sp"
-            android:layout_marginBottom="24dp"/>
 
         <!-- TARJETA INGRESOS -->
         <androidx.cardview.widget.CardView
